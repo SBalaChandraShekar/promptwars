@@ -25,10 +25,12 @@ Return the response in structured JSON format.
 
 def process_unstructured_input(data: str):
     prompt = PROMPT_TEMPLATE.format(input_data=data)
+    print(f"DEBUG: Input data Length: {len(data)}")
     response = client.models.generate_content(
-        model='gemini-3-flash-preview',
+        model='gemini-2.0-flash',
         contents=prompt
     )
+    print(f"DEBUG: Gemini response text length: {len(response.text) if response.text else 0}")
     
     # Attempt to parse JSON from the response
     try:
@@ -43,13 +45,15 @@ def process_image_input(image_bytes: bytes, mime_type: str):
     from google.genai import types
     
     prompt = PROMPT_TEMPLATE.format(input_data="[Image Data Provided]")
+    print(f"DEBUG: Processing image input...")
     response = client.models.generate_content(
-        model='gemini-3-flash-preview',
+        model='gemini-2.0-flash',
         contents=[
             prompt,
             types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
         ]
     )
+    print(f"DEBUG: Gemini response received.")
     
     try:
         text = response.text
