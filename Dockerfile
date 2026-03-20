@@ -16,16 +16,20 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY . .
 
-# Expose Streamlit port
+# Cloud Run uses the PORT env var, we must respect it
+ENV PORT 8080
 EXPOSE 8080
 
-# Create entrypoint script
+# Create entrypoint script safely
 RUN echo '#!/bin/bash\n\
-# Start FastAPI on port 8000\n\
+# Start FastAPI on port 8000 in the background\n\
 uvicorn main:app --host 0.0.0.0 --port 8000 &\n\
 \n\
-# Start Streamlit on the port provided by Cloud Run (default 8080)\n\
-streamlit run app.py --server.port ${PORT:-8080} --server.address 0.0.0.0\n\
+# Start Streamlit on the port provided by Cloud Run\n\
+streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true\n\
+\n\
+# Wait for any process to exit\n\
+wait -n\n\
 ' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
-CMD ["/app/entrypoint.sh"]
+CMD ["/bin/bash", "/app/entrypoint.sh"]
