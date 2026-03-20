@@ -16,18 +16,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY . .
 
-# Expose ports (FastAPI on 8000, Streamlit on 8501)
-EXPOSE 8000
-EXPOSE 8501
+# Expose Streamlit port
+EXPOSE 8080
 
-# Entry script (to run both FastAPI and Streamlit)
-# In a real Cloud Run environment, you might want to run them as separate services
-# or use a process manager like supervisord. For this basic structure,
-# we'll provide a bash script to start both.
-
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
+# Start FastAPI on port 8000\n\
 uvicorn main:app --host 0.0.0.0 --port 8000 &\n\
-streamlit run app.py --server.port 8501 --server.address 0.0.0.0\n\
-' > /app/start.sh && chmod +x /app/start.sh
+\n\
+# Start Streamlit on the port provided by Cloud Run (default 8080)\n\
+streamlit run app.py --server.port ${PORT:-8080} --server.address 0.0.0.0\n\
+' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
-CMD ["/app/start.sh"]
+CMD ["/app/entrypoint.sh"]
