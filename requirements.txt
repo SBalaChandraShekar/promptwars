@@ -2,7 +2,11 @@ fastapi
 uvicorn
 streamlit
 google-genai
+google-cloud-firestore
+google-cloud-logging
 python-multipart
 pydantic
 python-dotenv
 requests
+pytest
+httpx
