@@ -1,4 +1,5 @@
 from google import genai
+from google.genai import errors
 import os
 from dotenv import load_dotenv
 import json
@@ -26,59 +27,67 @@ Return the response in structured JSON format.
 def process_unstructured_input(data: str):
     prompt = PROMPT_TEMPLATE.format(input_data=data)
     print(f"DEBUG: Input data Length: {len(data)}")
-    response = client.models.generate_content(
-        model='gemini-2.0-flash',
-        contents=prompt
-    )
-    print(f"DEBUG: Gemini response text length: {len(response.text) if response.text else 0}")
-    
-    # Attempt to parse JSON from the response
     try:
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt
+        )
+        print(f"DEBUG: Gemini response received. Length: {len(response.text) if response.text else 0}")
         text = response.text
         if "```json" in text:
             text = text.split("```json")[1].split("```")[0].strip()
         return json.loads(text)
+    except errors.ClientError as e:
+        if "429" in str(e):
+            return {"error": "API Rate Limit Exceeded (429). Please wait a few seconds and try again.", "raw": str(e)}
+        return {"error": f"Gemini API Error: {e}", "raw": str(e)}
     except Exception as e:
-        return {"error": "Failed to parse Gemini response", "raw": response.text}
+        return {"error": f"Unexpected Error: {e}", "raw": str(e)}
 
 def process_image_input(image_bytes: bytes, mime_type: str):
     from google.genai import types
-    
     prompt = PROMPT_TEMPLATE.format(input_data="[Image Data Provided]")
     print(f"DEBUG: Processing image input...")
-    response = client.models.generate_content(
-        model='gemini-2.0-flash',
-        contents=[
-            prompt,
-            types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
-        ]
-    )
-    print(f"DEBUG: Gemini response received.")
-    
     try:
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=[
+                prompt,
+                types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+            ]
+        )
+        print(f"DEBUG: Gemini response received.")
         text = response.text
         if "```json" in text:
             text = text.split("```json")[1].split("```")[0].strip()
         return json.loads(text)
+    except errors.ClientError as e:
+        if "429" in str(e):
+            return {"error": "API Rate Limit Exceeded (429). Please wait a few seconds and try again.", "raw": str(e)}
+        return {"error": f"Gemini API Error: {e}", "raw": str(e)}
     except Exception as e:
-        return {"error": "Failed to parse Gemini response", "raw": response.text}
+        return {"error": f"Unexpected Error: {e}", "raw": str(e)}
 
 def process_audio_input(audio_bytes: bytes, mime_type: str):
     from google.genai import types
-    
     prompt = PROMPT_TEMPLATE.format(input_data="[Audio File Provided]")
-    response = client.models.generate_content(
-        model='gemini-3-flash-preview',
-        contents=[
-            prompt,
-            types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
-        ]
-    )
-    
+    print(f"DEBUG: Processing audio input...")
     try:
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=[
+                prompt,
+                types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
+            ]
+        )
+        print(f"DEBUG: Gemini response received.")
         text = response.text
         if "```json" in text:
             text = text.split("```json")[1].split("```")[0].strip()
         return json.loads(text)
+    except errors.ClientError as e:
+        if "429" in str(e):
+            return {"error": "API Rate Limit Exceeded (429). Please wait a few seconds and try again.", "raw": str(e)}
+        return {"error": f"Gemini API Error: {e}", "raw": str(e)}
     except Exception as e:
-        return {"error": "Failed to parse Gemini response", "raw": response.text}
+        return {"error": f"Unexpected Error: {e}", "raw": str(e)}
