@@ -22,9 +22,12 @@ with col1:
                 with st.spinner("Gemini is analyzing..."):
                     try:
                         response = requests.post("http://localhost:8000/process-text", json={"text": user_input})
-                        st.session_state['result'] = response.json()
+                        if response.status_code == 200:
+                            st.session_state['result'] = response.json()
+                        else:
+                            st.error(f"Backend Error ({response.status_code}): {response.text}")
                     except Exception as e:
-                        st.error(f"Error connecting to backend: {e}")
+                        st.error(f"Connection Error: {e}")
             else:
                 st.warning("Please provide some input.")
     
@@ -36,9 +39,12 @@ with col1:
                     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
                     try:
                         response = requests.post("http://localhost:8000/process-media", files=files)
-                        st.session_state['result'] = response.json()
+                        if response.status_code == 200:
+                            st.session_state['result'] = response.json()
+                        else:
+                            st.error(f"Backend Error ({response.status_code}): {response.text}")
                     except Exception as e:
-                        st.error(f"Error connecting to backend: {e}")
+                        st.error(f"Connection Error: {e}")
             else:
                 st.warning("Please upload a file.")
 

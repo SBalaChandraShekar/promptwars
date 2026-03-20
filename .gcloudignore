@@ -1,0 +1,27 @@
+# Ignore common unnecessary files for GCP deployment
+.git/
+.gitignore
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.env
+.vscode/
+# Add any other project-specific ignores below
+node_modules/
+dist/
+.agents/
+.agent/
+_agents/
+_agent/
+brain/
+history/
+logs/
+mcp_config/
+task.md
+implementation_plan.md
+walkthrough.md
